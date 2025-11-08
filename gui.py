@@ -45,6 +45,7 @@ class VoiceTypingGUI:
         self.current_text = ""
         self.current_language = 'ar'
         self.offline_mode = 'offline_first'
+        self.auto_type_enabled = tk.BooleanVar(value=True)  # الكتابة التلقائية مفعلة افتراضياً
         
         # إنشاء النافذة الرئيسية
         if CUSTOMTK_AVAILABLE:
@@ -212,6 +213,33 @@ class VoiceTypingGUI:
                 cursor="hand2"
             )
         download_btn.pack(side="left", padx=5)
+        
+        # خيار تفعيل/تعطيل الكتابة التلقائية
+        auto_type_frame = self._create_frame()
+        auto_type_frame.pack(pady=5, padx=20, fill="x")
+        
+        if CUSTOMTK_AVAILABLE:
+            self.auto_type_checkbox = ctk.CTkCheckBox(
+                auto_type_frame,
+                text="⌨️ كتابة تلقائية في التطبيق النشط",
+                variable=self.auto_type_enabled,
+                font=("Arial", 12),
+                onvalue=True,
+                offvalue=False
+            )
+        else:
+            self.auto_type_checkbox = tk.Checkbutton(
+                auto_type_frame,
+                text="⌨️ كتابة تلقائية في التطبيق النشط",
+                variable=self.auto_type_enabled,
+                font=("Arial", 12),
+                bg="#2b2b2b",
+                fg="white",
+                selectcolor="#2b2b2b",
+                activebackground="#2b2b2b",
+                activeforeground="white"
+            )
+        self.auto_type_checkbox.pack(anchor="w", padx=10)
         
         # إطار الحالة
         self.status_frame = self._create_frame()
@@ -856,14 +884,17 @@ class VoiceTypingGUI:
                     self.current_text = text
                     # إضافة النص للواجهة
                     self.root.after(0, self._add_text_to_display, text)
-                    # كتابة النص في التطبيق النشط
-                    if self.typer:
+                    # كتابة النص في التطبيق النشط (فقط إذا كان مفعّلاً)
+                    if self.auto_type_enabled.get() and self.typer:
                         print(f"⌨️ جاري الكتابة: '{text}'")
                         try:
-                            self.typer.type_text(text + " ")
+                            # إزالة المسافة الزائدة - النص فقط
+                            self.typer.type_text(text)
                             print("✅ تم الكتابة بنجاح")
                         except Exception as e:
                             print(f"❌ خطأ في الكتابة: {e}")
+                    elif not self.auto_type_enabled.get():
+                        print("ℹ️ الكتابة التلقائية معطلة")
                     else:
                         print("⚠️ typer غير متاح")
             
