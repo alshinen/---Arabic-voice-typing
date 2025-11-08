@@ -909,11 +909,12 @@ class VoiceTypingGUI:
             )
             
         except Exception as e:
-            print(f"❌ خطأ في الاستماع: {e}")
+            error_msg = str(e)
+            print(f"❌ خطأ في الاستماع: {error_msg}")
             import traceback
             traceback.print_exc()
-            self.root.after(0, lambda: self.update_status(
-                f"❌ خطأ: {str(e)}", "#ff0000"
+            self.root.after(0, lambda msg=error_msg: self.update_status(
+                f"❌ خطأ: {msg}", "#ff0000"
             ))
             
     def _add_text_to_display(self, text):
