@@ -24,6 +24,14 @@ try:
 except ImportError:
     PIL_AVAILABLE = False
 
+# استيراد نظام TTS
+try:
+    from text_to_speech import TextToSpeech
+    TTS_AVAILABLE = True
+except ImportError:
+    TTS_AVAILABLE = False
+    print("⚠️ نظام TTS غير متاح. يمكنك تثبيت المكتبات: pip install gtts pyttsx3 pygame")
+
 
 class VoiceTypingGUI:
     """واجهة المستخدم الرئيسية"""
@@ -45,6 +53,15 @@ class VoiceTypingGUI:
         self.current_text = ""
         self.current_language = 'ar'
         self.offline_mode = 'offline_first'
+        
+        # تهيئة نظام TTS
+        self.tts = None
+        if TTS_AVAILABLE:
+            try:
+                self.tts = TextToSpeech(engine='gtts', lang='ar')
+                print("✅ تم تهيئة نظام Text-to-Speech")
+            except Exception as e:
+                print(f"⚠️ فشل تهيئة TTS: {e}")
         
         # إنشاء النافذة الرئيسية
         if CUSTOMTK_AVAILABLE:
@@ -509,6 +526,31 @@ class VoiceTypingGUI:
                 cursor="hand2"
             )
         self.translate_btn.pack(side="left", padx=10)
+        
+        # خيار الترجمة الصوتية (TTS)
+        self.tts_enabled = tk.BooleanVar(value=False)
+        if CUSTOMTK_AVAILABLE:
+            self.tts_checkbox = ctk.CTkCheckBox(
+                lang_select_frame,
+                text="🔊 نطق",
+                variable=self.tts_enabled,
+                font=("Arial", 11),
+                onvalue=True,
+                offvalue=False
+            )
+        else:
+            self.tts_checkbox = tk.Checkbutton(
+                lang_select_frame,
+                text="🔊 نطق",
+                variable=self.tts_enabled,
+                font=("Arial", 11),
+                bg="#2b2b2b",
+                fg="white",
+                selectcolor="#2b2b2b",
+                activebackground="#2b2b2b",
+                activeforeground="white"
+            )
+        self.tts_checkbox.pack(side="left", padx=5)
         
         # منطقة عرض الترجمة
         trans_display_frame = self._create_frame()
@@ -1000,6 +1042,17 @@ class VoiceTypingGUI:
                 self.translation_display.insert("1.0", translated_text)
                 
                 print(f"✅ تمت الترجمة: {from_lang_name} → {to_lang_name}")
+                
+                # نطق النص المترجم إذا كان الخيار مفعّلاً
+                if self.tts_enabled.get() and self.tts:
+                    print(f"🔊 جاري نطق النص بلغة: {to_lang_name}")
+                    try:
+                        self.tts.speak(translated_text, lang=to_lang_code, blocking=False)
+                    except Exception as tts_error:
+                        print(f"⚠️ خطأ في النطق: {tts_error}")
+                elif self.tts_enabled.get() and not self.tts:
+                    print("⚠️ نظام TTS غير متاح. قم بتثبيت المكتبات:")
+                    print("   pip install gtts pyttsx3 pygame")
                 
             except ImportError:
                 # إذا لم تكن مكتبة googletrans مثبتة
