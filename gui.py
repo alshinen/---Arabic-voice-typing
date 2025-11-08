@@ -45,7 +45,6 @@ class VoiceTypingGUI:
         self.current_text = ""
         self.current_language = 'ar'
         self.offline_mode = 'offline_first'
-        self.auto_type_enabled = tk.BooleanVar(value=True)  # الكتابة التلقائية مفعلة افتراضياً
         
         # إنشاء النافذة الرئيسية
         if CUSTOMTK_AVAILABLE:
@@ -59,6 +58,9 @@ class VoiceTypingGUI:
         self.root.geometry("600x700")
         self.root.minsize(500, 600)  # حد أدنى للحجم لضمان ظهور جيد
         self.root.resizable(True, True)
+        
+        # إنشاء المتغيرات بعد إنشاء النافذة الرئيسية
+        self.auto_type_enabled = tk.BooleanVar(value=True)  # الكتابة التلقائية مفعلة افتراضياً
         
         # إعداد الواجهة
         self.setup_ui()
