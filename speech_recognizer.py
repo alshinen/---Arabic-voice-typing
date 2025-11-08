@@ -46,6 +46,12 @@ try:
 except ImportError:
     PYAUDIO_AVAILABLE = False
 
+try:
+    import sounddevice as sd
+    SOUNDDEVICE_AVAILABLE = True
+except ImportError:
+    SOUNDDEVICE_AVAILABLE = False
+
 import json
 
 
@@ -69,6 +75,8 @@ class SpeechRecognizer:
         self.is_listening = False
         self.audio_stream = None
         self.pyaudio_instance = None
+        self.use_sounddevice = False  # علامة لاستخدام sounddevice
+        self.audio_queue = []  # قائمة إطارات sounddevice
         self.callback = None
         self.use_google_fallback = use_google_fallback and not offline_only
         self.offline_only = offline_only
@@ -191,34 +199,52 @@ class SpeechRecognizer:
         
         self.is_listening = True
         
-        if not PYAUDIO_AVAILABLE:
+        # التحقق من توفر مكتبات الصوت
+        if not PYAUDIO_AVAILABLE and not SOUNDDEVICE_AVAILABLE:
             raise ImportError(
-                "PyAudio غير مثبت. للتثبيت:\n"
-                "  Ubuntu/Debian: sudo apt-get install portaudio19-dev && pip install PyAudio\n"
-                "  macOS: brew install portaudio && pip install PyAudio\n"
-                "  Windows: pip install PyAudio"
+                "لا يوجد مكتبة صوت متاحة!\n"
+                "الرجاء تثبيت إحدى المكتبات التالية:\n"
+                "  pip install sounddevice  (مستحسن)\n"
+                "  pip install PyAudio"
             )
         
+        # اختيار المكتبة المناسبة
+        use_sounddevice = SOUNDDEVICE_AVAILABLE and not PYAUDIO_AVAILABLE
+        
         try:
-            # إعداد PyAudio
-            print("🎤 جاري فتح الميكروفون...")
-            self.pyaudio_instance = pyaudio.PyAudio()
+            # إعداد الميكروفون
+            print(f"🎤 جاري فتح الميكروفون... (استخدام {'sounddevice' if use_sounddevice else 'PyAudio'})")
             
-            # طباعة معلومات الأجهزة المتاحة
-            print(f"📊 عدد أجهزة الصوت: {self.pyaudio_instance.get_device_count()}")
-            default_input = self.pyaudio_instance.get_default_input_device_info()
-            print(f"🎙️ الميكروفون الافتراضي: {default_input['name']}")
+            if use_sounddevice:
+                # استخدام sounddevice
+                print(f"📊 أجهزة الصوت المتاحة:")
+                devices = sd.query_devices()
+                default_input = sd.query_devices(kind='input')
+                print(f"�️ الميكروفون الافتراضي: {default_input['name']}")
+                
+                self.use_sounddevice = True
+                self.audio_queue = []
+            else:
+                # استخدام PyAudio
+                self.pyaudio_instance = pyaudio.PyAudio()
+                
+                # طباعة معلومات الأجهزة المتاحة
+                print(f"📊 عدد أجهزة الصوت: {self.pyaudio_instance.get_device_count()}")
+                default_input = self.pyaudio_instance.get_default_input_device_info()
+                print(f"🎙️ الميكروفون الافتراضي: {default_input['name']}")
+                
+                self.audio_stream = self.pyaudio_instance.open(
+                    format=pyaudio.paInt16,
+                    channels=1,
+                    rate=16000,
+                    input=True,
+                    frames_per_buffer=2000,
+                    input_device_index=None
+                )
+                
+                self.audio_stream.start_stream()
+                self.use_sounddevice = False
             
-            self.audio_stream = self.pyaudio_instance.open(
-                format=pyaudio.paInt16,
-                channels=1,
-                rate=16000,
-                input=True,
-                frames_per_buffer=2000,  # محسّن لأقصى سرعة - 2000 للمعالجة الفورية
-                input_device_index=None  # استخدام الجهاز الافتراضي
-            )
-            
-            self.audio_stream.start_stream()
             print("✅ تم فتح الميكروفون بنجاح!")
             
         except Exception as e:
@@ -250,25 +276,30 @@ class SpeechRecognizer:
         import time
         time.sleep(0.1)
         
-        # إيقاف وإغلاق الـ audio stream بشكل آمن
-        if self.audio_stream:
-            try:
-                if self.audio_stream.is_active():
-                    self.audio_stream.stop_stream()
-                self.audio_stream.close()
-            except Exception as e:
-                print(f"⚠️ خطأ في إيقاف audio_stream: {e}")
-            finally:
-                self.audio_stream = None
-        
-        # إنهاء PyAudio
-        if self.pyaudio_instance:
-            try:
-                self.pyaudio_instance.terminate()
-            except Exception as e:
-                print(f"⚠️ خطأ في إنهاء PyAudio: {e}")
-            finally:
-                self.pyaudio_instance = None
+        # إيقاف حسب المكتبة المستخدمة
+        if hasattr(self, 'use_sounddevice') and self.use_sounddevice:
+            # sounddevice لا تحتاج لإغلاق stream
+            print("✅ تم إيقاف sounddevice")
+        else:
+            # إيقاف وإغلاق PyAudio stream
+            if self.audio_stream:
+                try:
+                    if self.audio_stream.is_active():
+                        self.audio_stream.stop_stream()
+                    self.audio_stream.close()
+                except Exception as e:
+                    print(f"⚠️ خطأ في إيقاف audio_stream: {e}")
+                finally:
+                    self.audio_stream = None
+            
+            # إنهاء PyAudio
+            if self.pyaudio_instance:
+                try:
+                    self.pyaudio_instance.terminate()
+                except Exception as e:
+                    print(f"⚠️ خطأ في إنهاء PyAudio: {e}")
+                finally:
+                    self.pyaudio_instance = None
         
         print("✅ تم إيقاف التسجيل بنجاح")
     
@@ -382,7 +413,11 @@ class SpeechRecognizer:
         frames = []
         
         for _ in range(0, int(16000 / 8000 * duration)):
-            data = self.audio_stream.read(8000, exception_on_overflow=False)
+            if hasattr(self, 'use_sounddevice') and self.use_sounddevice:
+                data = sd.rec(8000, samplerate=16000, channels=1, dtype='int16', blocking=True)
+                data = data.tobytes()
+            else:
+                data = self.audio_stream.read(8000, exception_on_overflow=False)
             frames.append(data)
         
         # حفظ في ملف مؤقت
@@ -423,7 +458,15 @@ class SpeechRecognizer:
         
         try:
             while self.is_listening:
-                data = self.audio_stream.read(2000, exception_on_overflow=False)  # محسّن لأقصى سرعة - 2000
+                # قراءة الصوت حسب المكتبة المستخدمة
+                if hasattr(self, 'use_sounddevice') and self.use_sounddevice:
+                    # استخدام sounddevice
+                    data = sd.rec(2000, samplerate=16000, channels=1, dtype='int16', blocking=True)
+                    data = data.tobytes()
+                else:
+                    # استخدام PyAudio
+                    data = self.audio_stream.read(2000, exception_on_overflow=False)
+                
                 frames.append(data)
                 
                 # التحقق من الصمت - محسّن لأقصى سرعة ممكنة
