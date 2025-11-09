@@ -400,23 +400,30 @@ class VoiceTypingGUI:
         lang_select_frame.pack(fill="x", pady=5)
         
         # قائمة اللغات المتاحة للترجمة
-        self.translation_languages = {
-            'العربية': 'ar',
-            'English': 'en',
-            'Français': 'fr',
-            'Español': 'es',
-            'Deutsch': 'de',
-            'Italiano': 'it',
-            'Português': 'pt',
-            '中文': 'zh',
-            '日本語': 'ja',
-            '한국어': 'ko',
-            'Русский': 'ru',
-            'Türkçe': 'tr',
-            'فارسی': 'fa',
-            'हिन्दी': 'hi',
-            'Filipino': 'tl'
-        }
+        # استيراد قائمة اللغات الموحدة
+        try:
+            from languages import get_display_names, get_supported_languages
+            # استخدام جميع اللغات المدعومة في الترجمة (39 لغة)
+            self.translation_languages = get_display_names(use_native=True)
+        except ImportError:
+            # قائمة احتياطية
+            self.translation_languages = {
+                'العربية': 'ar',
+                'English': 'en',
+                'Français': 'fr',
+                'Español': 'es',
+                'Deutsch': 'de',
+                'Italiano': 'it',
+                'Português': 'pt',
+                '中文': 'zh',
+                '日本語': 'ja',
+                '한국어': 'ko',
+                'Русский': 'ru',
+                'Türkçe': 'tr',
+                'فارسی': 'fa',
+                'हिन्दी': 'hi',
+                'Filipino': 'tl'
+            }
         
         # من لغة
         if CUSTOMTK_AVAILABLE:

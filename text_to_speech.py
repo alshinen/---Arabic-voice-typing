@@ -49,23 +49,32 @@ class TextToSpeech:
         self.pyttsx3_engine = None
         
         # قاموس أكواد اللغات
-        self.lang_codes = {
-            'عربي': 'ar',
-            'إنجليزي': 'en',
-            'فرنسي': 'fr',
-            'إسباني': 'es',
-            'ألماني': 'de',
-            'إيطالي': 'it',
-            'برتغالي': 'pt',
-            'صيني': 'zh',
-            'ياباني': 'ja',
-            'كوري': 'ko',
-            'روسي': 'ru',
-            'تركي': 'tr',
-            'فارسي': 'fa',
-            'هندي': 'hi',
-            'فلبيني': 'tl'
-        }
+        # استيراد قائمة اللغات الموحدة
+        try:
+            from languages import get_display_names, get_gtts_code, GTTS_SUPPORTED
+            # استخدام جميع اللغات المدعومة في TTS (37 لغة)
+            display_names = get_display_names(use_native=False)  # الأسماء العربية
+            self.lang_codes = {ar_name: code for ar_name, code in display_names.items() 
+                              if code in GTTS_SUPPORTED}
+        except ImportError:
+            # قائمة احتياطية
+            self.lang_codes = {
+                'عربي': 'ar',
+                'إنجليزي': 'en',
+                'فرنسي': 'fr',
+                'إسباني': 'es',
+                'ألماني': 'de',
+                'إيطالي': 'it',
+                'برتغالي': 'pt',
+                'صيني': 'zh',
+                'ياباني': 'ja',
+                'كوري': 'ko',
+                'روسي': 'ru',
+                'تركي': 'tr',
+                'فارسي': 'fa',
+                'هندي': 'hi',
+                'فلبيني': 'tl'
+            }
         
         # تهيئة محرك pyttsx3 إذا كان متاحاً
         if engine == 'pyttsx3' and PYTTSX3_AVAILABLE:
