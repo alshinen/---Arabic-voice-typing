@@ -54,6 +54,14 @@ from auto_typer import AutoTyper
 from gui import VoiceTypingGUI
 from model_manager import ModelManager
 
+# استيراد الإعدادات
+try:
+    import config
+    CONFIG_AVAILABLE = True
+except ImportError:
+    CONFIG_AVAILABLE = False
+    config = None
+
 
 # ============================================================
 # 5. البرنامج الرئيسي المحسّن
@@ -61,9 +69,11 @@ from model_manager import ModelManager
 class VoiceTypingApp:
     """البرنامج الرئيسي المتكامل لتحويل الكلام إلى نص"""
     
-    # ثوابت البرنامج
-    TYPING_DELAY = 0.01  # قيمة آمنة ومحسّنة (10 مللي ثانية)
-    VERSION = "2.0.0"
+    # ثوابت البرنامج (من config.py إن وُجد)
+    TYPING_DELAY = config.TYPING_DELAY if CONFIG_AVAILABLE else 0.01
+    VERSION = "2.0.1"
+    DEFAULT_LANGUAGE = config.LANGUAGE if CONFIG_AVAILABLE else 'ar'
+    DEFAULT_ENGINE = config.RECOGNITION_ENGINE if CONFIG_AVAILABLE else 'vosk'
     
     def __init__(self, debug: bool = False):
         """تهيئة البرنامج
@@ -281,6 +291,17 @@ class VoiceTypingApp:
         finally:
             self.cleanup()
     
+    def emergency_exit(self, reason: str = "خطأ حرج"):
+        """إغلاق فوري في حال خطأ حرج
+        
+        Args:
+            reason: سبب الإغلاق الطارئ
+        """
+        logging.critical(f"⚠️ إغلاق طارئ: {reason}")
+        print(f"\n❌ إغلاق طارئ: {reason}")
+        self.cleanup()
+        sys.exit(1)
+    
     def cleanup(self):
         """تنظيف الموارد بأمان"""
         logging.info("🧹 جاري تنظيف الموارد...")
@@ -314,21 +335,45 @@ def check_dependencies() -> bool:
         True إذا كانت جميع المكتبات مثبتة
     """
     deps = {
+        'SpeechRecognition': 'speech_recognition',
+        'PyAudio/sounddevice': None,  # سيتم فحصها بشكل خاص
         'customtkinter': 'customtkinter',
         'keyboard': 'keyboard',
         'vosk': 'vosk',
         'numpy': 'numpy',
+        'googletrans': 'googletrans',  # للترجمة
+        'gtts': 'gtts',  # للنطق
+        'pyttsx3': 'pyttsx3',  # للنطق المحلي
     }
     
     missing = []
+    optional_missing = []
+    
     for pip_name, module_name in deps.items():
+        # فحص خاص لـ PyAudio/sounddevice
+        if module_name is None:
+            try:
+                __import__('pyaudio')
+            except ImportError:
+                try:
+                    __import__('sounddevice')
+                except ImportError:
+                    missing.append(pip_name)
+            continue
+        
+        # فحص المكتبات الأخرى
         try:
             __import__(module_name)
         except ImportError:
-            missing.append(pip_name)
+            # المكتبات الاختيارية (للترجمة والنطق)
+            if pip_name in ['googletrans', 'gtts', 'pyttsx3']:
+                optional_missing.append(pip_name)
+            else:
+                missing.append(pip_name)
     
+    # عرض المكتبات المفقودة الأساسية
     if missing:
-        print("❌ المكتبات المفقودة:")
+        print("❌ المكتبات الأساسية المفقودة:")
         for lib in missing:
             print(f"   - {lib}")
         print(f"\n💡 نصّبها باستخدام:")
@@ -336,6 +381,14 @@ def check_dependencies() -> bool:
         print("\nأو:")
         print("   pip install -r requirements_advanced.txt")
         return False
+    
+    # عرض المكتبات الاختيارية المفقودة (تحذير فقط)
+    if optional_missing:
+        print("⚠️ المكتبات الاختيارية المفقودة (للترجمة والنطق):")
+        for lib in optional_missing:
+            print(f"   - {lib}")
+        print("💡 يمكنك تثبيتها لاحقاً لتفعيل ميزات الترجمة والنطق")
+        print(f"   pip install {' '.join(optional_missing)}\n")
     
     return True
 
