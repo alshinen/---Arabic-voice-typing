@@ -559,6 +559,31 @@ class VoiceTypingGUI:
             )
         self.tts_checkbox.pack(side="left", padx=5)
         
+        # خيار الترجمة التلقائية
+        self.auto_translate_enabled = tk.BooleanVar(value=False)
+        if CUSTOMTK_AVAILABLE:
+            self.auto_translate_checkbox = ctk.CTkCheckBox(
+                lang_select_frame,
+                text="🔄 تلقائي",
+                variable=self.auto_translate_enabled,
+                font=("Arial", 11),
+                onvalue=True,
+                offvalue=False
+            )
+        else:
+            self.auto_translate_checkbox = tk.Checkbutton(
+                lang_select_frame,
+                text="🔄 تلقائي",
+                variable=self.auto_translate_enabled,
+                font=("Arial", 11),
+                bg="#2b2b2b",
+                fg="white",
+                selectcolor="#2b2b2b",
+                activebackground="#2b2b2b",
+                activeforeground="white"
+            )
+        self.auto_translate_checkbox.pack(side="left", padx=5)
+        
         # منطقة عرض الترجمة
         trans_display_frame = self._create_frame()
         trans_display_frame.pack(fill="x", pady=5)
@@ -935,19 +960,25 @@ class VoiceTypingGUI:
                     self.current_text = text
                     # إضافة النص للواجهة
                     self.root.after(0, self._add_text_to_display, text)
-                    # كتابة النص في التطبيق النشط (فقط إذا كان مفعّلاً)
-                    if self.auto_type_enabled.get() and self.typer:
-                        print(f"⌨️ جاري الكتابة: '{text}'")
-                        try:
-                            # إزالة المسافة الزائدة - النص فقط
-                            self.typer.type_text(text)
-                            print("✅ تم الكتابة بنجاح")
-                        except Exception as e:
-                            print(f"❌ خطأ في الكتابة: {e}")
-                    elif not self.auto_type_enabled.get():
-                        print("ℹ️ الكتابة التلقائية معطلة")
+                    
+                    # ترجمة تلقائية إذا كانت مفعلة
+                    if self.auto_translate_enabled.get():
+                        print("🔄 الترجمة التلقائية مفعلة...")
+                        self.root.after(0, self._auto_translate_and_speak, text)
                     else:
-                        print("⚠️ typer غير متاح")
+                        # كتابة النص في التطبيق النشط (فقط إذا كان مفعّلاً)
+                        if self.auto_type_enabled.get() and self.typer:
+                            print(f"⌨️ جاري الكتابة: '{text}'")
+                            try:
+                                # إزالة المسافة الزائدة - النص فقط
+                                self.typer.type_text(text)
+                                print("✅ تم الكتابة بنجاح")
+                            except Exception as e:
+                                print(f"❌ خطأ في الكتابة: {e}")
+                        elif not self.auto_type_enabled.get():
+                            print("ℹ️ الكتابة التلقائية معطلة")
+                        else:
+                            print("⚠️ typer غير متاح")
             
             # بدء الاستماع المستمر (محسّن للسرعة)
             print("🎧 جاري الاستماع... تكلم الآن!")
@@ -997,6 +1028,68 @@ class VoiceTypingGUI:
         """مسح النص"""
         self.text_display.delete("1.0", "end")
         self.current_text = ""
+    
+    def _auto_translate_and_speak(self, text):
+        """ترجمة تلقائية ونطق النص المترجم"""
+        try:
+            # الحصول على اللغة المستهدفة
+            from_lang_name = self.from_lang_var.get()
+            to_lang_name = self.to_lang_var.get()
+            
+            from_lang_code = self.translation_languages.get(from_lang_name, 'ar')
+            to_lang_code = self.translation_languages.get(to_lang_name, 'en')
+            
+            print(f"🔄 ترجمة تلقائية: {from_lang_name} → {to_lang_name}")
+            
+            # الترجمة
+            try:
+                from googletrans import Translator
+                translator = Translator()
+                
+                translation = translator.translate(
+                    text,
+                    src=from_lang_code,
+                    dest=to_lang_code
+                )
+                
+                translated_text = translation.text
+                
+                # عرض الترجمة
+                self.translation_display.delete("1.0", "end")
+                self.translation_display.insert("1.0", translated_text)
+                
+                print(f"✅ تمت الترجمة التلقائية: {text} → {translated_text}")
+                
+                # كتابة النص المترجم إذا كانت الكتابة التلقائية مفعلة
+                if self.auto_type_enabled.get() and self.typer:
+                    print(f"⌨️ جاري كتابة النص المترجم: '{translated_text}'")
+                    try:
+                        self.typer.type_text(translated_text)
+                        print("✅ تم كتابة النص المترجم بنجاح")
+                    except Exception as e:
+                        print(f"❌ خطأ في كتابة النص المترجم: {e}")
+                
+                # النطق التلقائي إذا كان مفعلاً
+                if self.tts_enabled.get() and self.tts:
+                    print(f"🔊 جاري نطق النص المترجم بلغة: {to_lang_name}")
+                    try:
+                        self.tts.speak(translated_text, lang=to_lang_code, blocking=False)
+                        print("✅ تم نطق النص المترجم")
+                    except Exception as tts_error:
+                        print(f"⚠️ خطأ في النطق: {tts_error}")
+                
+            except ImportError:
+                print("❌ مكتبة الترجمة غير مثبتة")
+                self.translation_display.delete("1.0", "end")
+                self.translation_display.insert("1.0", "❌ مكتبة googletrans غير مثبتة!")
+                
+            except Exception as e:
+                print(f"❌ خطأ في الترجمة التلقائية: {e}")
+                self.translation_display.delete("1.0", "end")
+                self.translation_display.insert("1.0", f"❌ خطأ: {str(e)}")
+                
+        except Exception as e:
+            print(f"❌ خطأ عام في الترجمة التلقائية: {e}")
     
     def translate_text(self):
         """ترجمة النص من لغة إلى أخرى"""
