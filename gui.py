@@ -1017,9 +1017,9 @@ class VoiceTypingGUI:
                         if self.auto_type_enabled.get() and self.typer:
                             print(f"⌨️ جاري الكتابة: '{text}'")
                             try:
-                                # إزالة المسافة الزائدة - النص فقط
-                                self.typer.type_text(text)
-                                print("✅ تم الكتابة بنجاح")
+                                # كتابة النص مع مسافة في النهاية (فاصل الجملة)
+                                self.typer.type_text(text + " ")
+                                print("✅ تم الكتابة بنجاح (مع مسافة فاصلة)")
                             except Exception as e:
                                 print(f"❌ خطأ في الكتابة: {e}")
                         elif not self.auto_type_enabled.get():
@@ -1111,8 +1111,9 @@ class VoiceTypingGUI:
                 if self.auto_type_enabled.get() and self.typer:
                     print(f"⌨️ جاري كتابة النص المترجم: '{translated_text}'")
                     try:
-                        self.typer.type_text(translated_text)
-                        print("✅ تم كتابة النص المترجم بنجاح")
+                        # كتابة النص المترجم مع مسافة في النهاية (فاصل الجملة)
+                        self.typer.type_text(translated_text + " ")
+                        print("✅ تم كتابة النص المترجم بنجاح (مع مسافة فاصلة)")
                     except Exception as e:
                         print(f"❌ خطأ في كتابة النص المترجم: {e}")
                 
