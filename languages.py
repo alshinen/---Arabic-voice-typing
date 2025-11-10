@@ -24,7 +24,8 @@ LANGUAGES = {
     'tr': ('التركية', 'Türkçe', 'tr'),
     'fa': ('الفارسية', 'فارسی', 'fa'),
     'hi': ('الهندية', 'हिन्दी', 'hi'),
-    'tl': ('الفلبينية', 'Filipino', 'tl'),
+    'tl': ('الفلبينية (تاغالوغ)', 'Filipino (Tagalog)', 'tl'),
+    'ceb': ('السيبوانية', 'Cebuano (Visayan)', 'ceb'),
     'nl': ('الهولندية', 'Nederlands', 'nl'),
     'pl': ('البولندية', 'Polski', 'pl'),
     'vi': ('الفيتنامية', 'Tiếng Việt', 'vi'),
@@ -95,15 +96,22 @@ def get_gtts_code(code):
         code: رمز اللغة (ar, en, إلخ)
     
     Returns:
-        رمز gtts المناسب
+        رمز gtts المناسب أو None إذا كانت غير مدعومة
     """
     # gtts يستخدم رموز معينة لبعض اللغات
     gtts_mapping = {
         'zh': 'zh-CN',  # الصينية المبسطة
+        'he': 'iw',     # العبرية (gtts يستخدم iw بدلاً من he)
         'en': 'en',
         'ar': 'ar',
     }
-    return gtts_mapping.get(code, code)
+    
+    # إذا كانت اللغة غير مدعومة في gtts، إرجاع None
+    final_code = gtts_mapping.get(code, code)
+    if final_code not in GTTS_SUPPORTED and code not in GTTS_SUPPORTED:
+        return None
+    
+    return final_code
 
 def get_speech_recognition_code(code):
     """
@@ -145,11 +153,12 @@ VOSK_SUPPORTED = [
 ]
 
 # اللغات المدعومة في Google TTS (gtts)
+# ملاحظة: fa (الفارسية) غير مدعومة، he يستخدم رمز iw في gtts
 GTTS_SUPPORTED = [
     'ar', 'en', 'fr', 'es', 'de', 'it', 'pt', 'ru', 'zh', 'ja', 
-    'ko', 'tr', 'fa', 'hi', 'tl', 'nl', 'pl', 'vi', 'th', 'id',
+    'ko', 'tr', 'hi', 'tl', 'nl', 'pl', 'vi', 'th', 'id',
     'ms', 'uk', 'sv', 'da', 'no', 'fi', 'cs', 'sk', 'hu', 'ro',
-    'el', 'he', 'bn', 'ta', 'te', 'ur', 'sw'
+    'el', 'he', 'bn', 'ta', 'te', 'ur', 'sw', 'ca'
 ]
 
 # اللغات المدعومة في Google Translate

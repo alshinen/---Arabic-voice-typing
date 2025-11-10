@@ -125,12 +125,25 @@ class TextToSpeech:
     def _speak_with_gtts(self, text, lang, blocking):
         """نطق باستخدام Google TTS"""
         try:
+            # التحقق من دعم اللغة في gtts
+            from languages import get_gtts_code, is_language_supported
+            
+            if not is_language_supported(lang, 'gtts'):
+                print(f"⚠️ اللغة '{lang}' غير مدعومة في Google TTS")
+                return False
+            
+            # تحويل رمز اللغة لما يتوافق مع gtts
+            gtts_lang = get_gtts_code(lang)
+            if not gtts_lang:
+                print(f"⚠️ اللغة '{lang}' غير مدعومة في Google TTS")
+                return False
+            
             # إنشاء ملف صوت مؤقت
             with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as fp:
                 temp_file = fp.name
             
             # توليد الصوت
-            tts = gTTS(text=text, lang=lang, slow=False)
+            tts = gTTS(text=text, lang=gtts_lang, slow=False)
             tts.save(temp_file)
             
             # تشغيل الصوت

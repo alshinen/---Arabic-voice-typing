@@ -1073,8 +1073,13 @@ class VoiceTypingGUI:
                 if self.tts_enabled.get() and self.tts:
                     print(f"🔊 جاري نطق النص المترجم بلغة: {to_lang_name}")
                     try:
-                        self.tts.speak(translated_text, lang=to_lang_code, blocking=False)
-                        print("✅ تم نطق النص المترجم")
+                        # التحقق من دعم اللغة قبل النطق
+                        from languages import is_language_supported
+                        if is_language_supported(to_lang_code, 'gtts'):
+                            self.tts.speak(translated_text, lang=to_lang_code, blocking=False)
+                            print("✅ تم نطق النص المترجم")
+                        else:
+                            print(f"⚠️ اللغة '{to_lang_name}' غير مدعومة في Google TTS (النطق فقط)")
                     except Exception as tts_error:
                         print(f"⚠️ خطأ في النطق: {tts_error}")
                 
