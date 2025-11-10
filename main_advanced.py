@@ -419,6 +419,7 @@ def main():
         
         if app.gui:
             app.run()
+            sys.exit(0)  # إغلاق نظيف
         else:
             print("❌ فشل تهيئة البرنامج. تحقق من ملفات السجل (logs/)")
             input("\nاضغط Enter للخروج...")
@@ -426,6 +427,7 @@ def main():
             
     except KeyboardInterrupt:
         print("\n⏹️ تم إيقاف البرنامج")
+        sys.exit(0)  # إغلاق نظيف
         
     except Exception as e:
         print(f"❌ خطأ عام: {e}")

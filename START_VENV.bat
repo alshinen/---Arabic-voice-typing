@@ -20,7 +20,13 @@ python main_advanced.py
 
 if %errorlevel% neq 0 (
     echo.
-    echo ❌ حدث خطأ أثناء تشغيل البرنامج!
+    echo ⚠️ البرنامج أُغلق بشكل غير متوقع
+    echo 📋 تحقق من ملف السجل: logs\voice_typing_%date:~10,4%%date:~4,2%%date:~7,2%.log
     echo.
-    pause
+) else (
+    echo.
+    echo ✅ تم إغلاق البرنامج بنجاح
+    echo.
 )
+
+pause
