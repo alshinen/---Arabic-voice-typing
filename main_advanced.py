@@ -62,6 +62,15 @@ except ImportError:
     CONFIG_AVAILABLE = False
     config = None
 
+# استيراد المصحح الإملائي
+try:
+    from spell_checker import SpellChecker, is_spell_checker_available
+    SPELL_CHECKER_AVAILABLE = is_spell_checker_available()
+except ImportError:
+    SPELL_CHECKER_AVAILABLE = False
+    SpellChecker = None
+    logging.warning("⚠️ مكتبة المصحح الإملائي غير مثبتة")
+
 
 # ============================================================
 # 5. البرنامج الرئيسي المحسّن
@@ -89,6 +98,7 @@ class VoiceTypingApp:
         self.typer: Optional[AutoTyper] = None
         self.gui: Optional[VoiceTypingGUI] = None
         self.model_manager: Optional[ModelManager] = None
+        self.spell_checker: Optional[SpellChecker] = None
         
         logging.info(f"🚀 بدء تحميل برنامج الكتابة بالصوت v{self.VERSION}")
         logging.info("=" * 60)
@@ -159,7 +169,20 @@ class VoiceTypingApp:
             else:
                 logging.warning("⚠️ نموذج Vosk العربي غير محمل")
             
-            # 3. تهيئة نظام الكتابة
+            # 3. تهيئة المصحح الإملائي
+            logging.info("📝 جاري تهيئة المصحح الإملائي...")
+            if SPELL_CHECKER_AVAILABLE and SpellChecker:
+                try:
+                    self.spell_checker = SpellChecker(language=self.DEFAULT_LANGUAGE, auto_correct=True)
+                    logging.info(f"✅ تم تهيئة المصحح الإملائي للغة: {self.DEFAULT_LANGUAGE}")
+                except Exception as e:
+                    logging.warning(f"⚠️ فشل تهيئة المصحح الإملائي: {e}")
+                    self.spell_checker = None
+            else:
+                logging.info("⚠️ المصحح الإملائي غير متاح")
+                self.spell_checker = None
+            
+            # 4. تهيئة نظام الكتابة
             logging.info("⌨️ جاري تهيئة نظام الكتابة...")
             try:
                 self.typer = AutoTyper(method='keyboard', delay=self.TYPING_DELAY)
@@ -174,13 +197,14 @@ class VoiceTypingApp:
                     self._save_error_details(e2, "AutoTyper Initialization")
                     self.typer = None
             
-            # 4. تهيئة الواجهة الرسومية
+            # 5. تهيئة الواجهة الرسومية
             logging.info("🎨 جاري تحميل الواجهة الرسومية...")
             try:
                 self.gui = VoiceTypingGUI(
                     self.recognizer,
                     self.typer,
-                    self.model_manager
+                    self.model_manager,
+                    self.spell_checker
                 )
                 logging.info("✅ تم تحميل الواجهة بنجاح!")
                 
@@ -344,6 +368,7 @@ def check_dependencies() -> bool:
         'googletrans': 'googletrans',  # للترجمة
         'gtts': 'gtts',  # للنطق
         'pyttsx3': 'pyttsx3',  # للنطق المحلي
+        'language-tool-python': 'language_tool_python',  # المصحح الإملائي
     }
     
     missing = []
@@ -365,8 +390,8 @@ def check_dependencies() -> bool:
         try:
             __import__(module_name)
         except ImportError:
-            # المكتبات الاختيارية (للترجمة والنطق)
-            if pip_name in ['googletrans', 'gtts', 'pyttsx3']:
+            # المكتبات الاختيارية (للترجمة والنطق والتصحيح)
+            if pip_name in ['googletrans', 'gtts', 'pyttsx3', 'language-tool-python']:
                 optional_missing.append(pip_name)
             else:
                 missing.append(pip_name)
@@ -384,10 +409,10 @@ def check_dependencies() -> bool:
     
     # عرض المكتبات الاختيارية المفقودة (تحذير فقط)
     if optional_missing:
-        print("⚠️ المكتبات الاختيارية المفقودة (للترجمة والنطق):")
+        print("⚠️ المكتبات الاختيارية المفقودة (للترجمة، النطق، والتصحيح):")
         for lib in optional_missing:
             print(f"   - {lib}")
-        print("💡 يمكنك تثبيتها لاحقاً لتفعيل ميزات الترجمة والنطق")
+        print("💡 يمكنك تثبيتها لاحقاً لتفعيل ميزات إضافية")
         print(f"   pip install {' '.join(optional_missing)}\n")
     
     return True

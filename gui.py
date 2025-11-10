@@ -36,7 +36,7 @@ except ImportError:
 class VoiceTypingGUI:
     """واجهة المستخدم الرئيسية"""
     
-    def __init__(self, recognizer=None, typer=None, model_manager=None):
+    def __init__(self, recognizer=None, typer=None, model_manager=None, spell_checker=None):
         """
         تهيئة الواجهة
         
@@ -44,10 +44,12 @@ class VoiceTypingGUI:
             recognizer: كائن SpeechRecognizer
             typer: كائن AutoTyper
             model_manager: كائن ModelManager
+            spell_checker: كائن SpellChecker
         """
         self.recognizer = recognizer
         self.typer = typer
         self.model_manager = model_manager
+        self.spell_checker = spell_checker
         self.is_listening = False
         self.listening_thread = None
         self.current_text = ""
@@ -584,6 +586,38 @@ class VoiceTypingGUI:
             )
         self.auto_translate_checkbox.pack(side="left", padx=5)
         
+        # خيار المصحح الإملائي
+        self.spell_check_enabled = tk.BooleanVar(value=True if self.spell_checker else False)
+        if CUSTOMTK_AVAILABLE:
+            self.spell_check_checkbox = ctk.CTkCheckBox(
+                lang_select_frame,
+                text="📝 تصحيح",
+                variable=self.spell_check_enabled,
+                font=("Arial", 11),
+                onvalue=True,
+                offvalue=False
+            )
+        else:
+            self.spell_check_checkbox = tk.Checkbutton(
+                lang_select_frame,
+                text="📝 تصحيح",
+                variable=self.spell_check_enabled,
+                font=("Arial", 11),
+                bg="#2b2b2b",
+                fg="white",
+                selectcolor="#2b2b2b",
+                activebackground="#2b2b2b",
+                activeforeground="white"
+            )
+        self.spell_check_checkbox.pack(side="left", padx=5)
+        
+        # تعطيل المصحح إذا لم يكن متاحاً
+        if not self.spell_checker:
+            if CUSTOMTK_AVAILABLE:
+                self.spell_check_checkbox.configure(state="disabled")
+            else:
+                self.spell_check_checkbox.config(state="disabled")
+        
         # منطقة عرض الترجمة
         trans_display_frame = self._create_frame()
         trans_display_frame.pack(fill="x", pady=5)
@@ -957,6 +991,19 @@ class VoiceTypingGUI:
                 """استدعاء عند التعرف على نص"""
                 print(f"🔊 تم التعرف على نص: '{text}'")
                 if text and text.strip():
+                    # تصحيح إملائي إذا كان مفعلاً
+                    if self.spell_check_enabled.get() and self.spell_checker:
+                        print("📝 جاري التصحيح الإملائي...")
+                        try:
+                            corrected_text = self.spell_checker.check_and_correct(text, verbose=False)
+                            if corrected_text != text:
+                                print(f"✅ تم التصحيح: '{text}' → '{corrected_text}'")
+                                text = corrected_text
+                            else:
+                                print("✅ لا توجد أخطاء إملائية")
+                        except Exception as e:
+                            print(f"⚠️ خطأ في المصحح الإملائي: {e}")
+                    
                     self.current_text = text
                     # إضافة النص للواجهة
                     self.root.after(0, self._add_text_to_display, text)
