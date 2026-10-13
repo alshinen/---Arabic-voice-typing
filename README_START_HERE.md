@@ -1,223 +1,39 @@
-# 🎤 برنامج الكتابة بالصوت - Voice Typing Advanced
+# ابدأ هنا — برنامج الكتابة بالصوت
 
-## 📌 نظرة عامة
+راجع [README.md](README.md) للتثبيت والاستخدام، و[README_VENV.md](README_VENV.md) لإنشاء بيئة Python خاصة بالمشروع.
 
-برنامج متقدم لتحويل الكلام إلى نص مع دعم كامل للغة العربية.
-يعمل بدون إنترنت أو مع إنترنت حسب اختيارك.
+## البدء على Windows
 
----
+افتح CMD داخل مجلد المشروع، ثم نفّذ:
 
-## ⚡ البدء السريع (3 دقائق)
-
-### الخطوة 1: تثبيت المكتبات
-```bash
-pip install SpeechRecognition PyAudio keyboard customtkinter numpy
+```bat
+python -m venv venv
+call venv\Scripts\activate.bat
+python -m pip install -r requirements_advanced.txt
+START_VENV.bat
 ```
 
-### الخطوة 2: تشغيل البرنامج
-```bash
-python main_advanced.py
-```
+للعمل بمحرك Vosk دون إنترنت، حمّل نموذج اللغة أولاً من زر **تحميل النماذج** في الواجهة. يحتاج التحميل إلى اتصال بالإنترنت.
 
-**أو على Windows:** انقر نقراً مزدوجاً على `START.bat`
+## ملفات التشغيل
 
----
+| الملف | الاستخدام |
+| --- | --- |
+| `main_advanced.py` | نقطة التشغيل الرئيسية |
+| `START_VENV.bat` | تشغيل Python الموجود في مجلد `venv/` |
+| `START.bat` | تشغيل البرنامج باستخدام أمر `python` المتاح؛ فعّل البيئة أولاً |
+| `run_simple.py` | فحص توفر المكتبات ثم محاولة فتح الواجهة |
+| `download_and_run.py` | تحميل نموذج Whisper ثم تشغيل البرنامج؛ يتطلب تثبيت `openai-whisper` |
 
-## 🔧 إصلاح تلقائي
+## المساعدة
 
-إذا واجهت مشاكل، استخدم أحد هذه:
+- [README_ADVANCED.md](README_ADVANCED.md): الاستخدام والإعدادات.
+- `fix_all.py` و`FIX_ALL.bat`: أدوات إصلاح وتثبيت المكتبات.
+- `FIX_WHISPER.bat`: إصلاح تثبيت Whisper.
+- `INSTALL_PYAUDIO.bat`: تثبيت مكتبة التسجيل.
+- `INSTALL_TRANSLATION.bat` و`INSTALL_TTS.bat`: تثبيت الترجمة والنطق.
+- `INSTALL_SPELL_CHECKER.bat` و`INSTALL_ALL_SPELLCHECKERS.bat`: تثبيت محركات التصحيح.
 
-### الطريقة 1: سكريبت Python
-```bash
-python fix_all.py
-```
+توجد سجلات الأخطاء في `logs/`. عند الإبلاغ عن مشكلة، أرفق رسالة الخطأ وإصدار Python في [صفحة المشكلات](https://github.com/alshinen/---Arabic-voice-typing/issues).
 
-### الطريقة 2: ملف Batch (Windows فقط)
-انقر نقراً مزدوجاً على: `FIX_ALL.bat`
-
----
-
-## 📚 الملفات المرفقة
-
-### ملفات التشغيل:
-- `main_advanced.py` - البرنامج الرئيسي
-- `START.bat` - تشغيل سريع (Windows)
-- `run.bat` - تشغيل بديل
-
-### ملفات الإصلاح:
-- `fix_all.py` - إصلاح تلقائي (Python)
-- `FIX_ALL.bat` - إصلاح تلقائي (Windows)
-- `INSTALL_RECOGNITION.bat` - تثبيت محرك التعرف
-- `FIX_WHISPER.bat` - إصلاح مشكلة Whisper
-
-### ملفات التوثيق:
-- `الملخص_النهائي.md` - ملخص شامل بالعربية
-- `تقرير_اخطاء_البرنامج.md` - تقرير تفصيلي
-- `دليل_الاصلاح_السريع.md` - دليل الإصلاح
-- `اصلاح_سريع.txt` - تعليمات مختصرة
-- `BUG_REPORT_EN.md` - تقرير بالإنجليزية
-- `README_ADVANCED.md` - دليل البرنامج المتقدم
-- `QUICK_START_ADVANCED.md` - بداية سريعة
-
----
-
-## 🎯 المتطلبات
-
-### المكتبات الأساسية (حرجة):
-- Python 3.8 أو أحدث
-- SpeechRecognition (للتعرف على الصوت)
-- PyAudio (لتسجيل الصوت)
-- keyboard (للكتابة التلقائية)
-- numpy (لمعالجة البيانات)
-
-### المكتبات الاختيارية:
-- customtkinter (واجهة رسومية جميلة)
-- pyautogui (كتابة بديلة)
-- vosk (للعمل بدون إنترنت)
-- openai-whisper (دقة عالية)
-
----
-
-## 🌐 خيارات التشغيل
-
-### 1. مع إنترنت (الأسهل - موصى به)
-```bash
-pip install SpeechRecognition PyAudio keyboard customtkinter numpy
-python main_advanced.py
-```
-**الميزات:**
-- ✅ سهل التثبيت
-- ✅ دقة عالية جداً
-- ❌ يحتاج إنترنت
-
-### 2. بدون إنترنت (Vosk)
-```bash
-pip install vosk PyAudio keyboard customtkinter numpy
-# حمّل النموذج من: https://alphacephei.com/vosk/models
-python main_advanced.py
-```
-**الميزات:**
-- ✅ يعمل بدون إنترنت
-- ✅ سريع وخفيف
-- ⚠️ يحتاج تحميل نموذج (300 MB)
-
-### 3. دقة قصوى (Whisper)
-```bash
-pip install openai-whisper PyAudio keyboard customtkinter numpy
-python main_advanced.py
-```
-**الميزات:**
-- ✅ أعلى دقة
-- ⚠️ يحتاج GPU للسرعة
-- ⚠️ تحميل كبير (1-3 GB)
-
----
-
-## 🖥️ حسب نظام التشغيل
-
-### Windows:
-```bash
-pip install SpeechRecognition keyboard customtkinter numpy
-pip install pipwin
-pipwin install pyaudio
-```
-
-### Linux (Ubuntu/Debian):
-```bash
-sudo apt-get install portaudio19-dev python3-tk
-pip3 install SpeechRecognition PyAudio keyboard customtkinter numpy
-```
-
-### macOS:
-```bash
-brew install portaudio
-pip3 install SpeechRecognition PyAudio keyboard customtkinter numpy
-```
-
----
-
-## ✅ التحقق من التثبيت
-
-```bash
-python -c "
-packages = ['speech_recognition', 'pyaudio', 'keyboard', 'customtkinter', 'numpy']
-for p in packages:
-    try:
-        __import__(p)
-        print(f'✅ {p}')
-    except:
-        print(f'❌ {p}')
-"
-```
-
----
-
-## 🐛 حل المشاكل
-
-راجع:
-- `دليل_الاصلاح_السريع.md` - للحلول التفصيلية
-- `تقرير_اخطاء_البرنامج.md` - لفهم المشاكل
-- `اصلاح_سريع.txt` - للحلول السريعة
-
----
-
-## 📞 المساعدة
-
-إذا استمرت المشاكل:
-
-1. شغّل `fix_all.py` للإصلاح التلقائي
-2. راجع ملفات التوثيق المرفقة
-3. تأكد من Python 3.8 أو أحدث
-4. حدّث pip: `pip install --upgrade pip`
-
----
-
-## ⭐ الميزات
-
-- ✅ دعم كامل للغة العربية
-- ✅ يعمل مع أو بدون إنترنت
-- ✅ واجهة رسومية سهلة
-- ✅ كتابة في أي تطبيق
-- ✅ تبديل اللغات أثناء التشغيل
-- ✅ تصحيح تلقائي
-- ✅ أوامر صوتية
-
----
-
-## 📝 الملفات الأساسية
-
-```
-voice_typing_advanced_fixed/
-├── main_advanced.py          # البرنامج الرئيسي
-├── speech_recognizer.py      # محرك التعرف على الصوت
-├── gui.py                    # الواجهة الرسومية
-├── auto_typer.py             # نظام الكتابة التلقائية
-├── model_manager.py          # مدير النماذج
-├── config.py                 # ملف الإعدادات
-├── requirements_advanced.txt # قائمة المكتبات
-├── fix_all.py               # إصلاح تلقائي
-├── FIX_ALL.bat              # إصلاح تلقائي (Windows)
-└── ملفات التوثيق            # تقارير وأدلة
-```
-
----
-
-## 🎉 البدء
-
-1. فك الضغط عن الملف
-2. افتح Terminal/CMD في مجلد البرنامج
-3. نفّذ: `pip install SpeechRecognition PyAudio keyboard customtkinter numpy`
-4. شغّل: `python main_advanced.py`
-
-**استمتع! 🎤✨**
-
----
-
-## 📄 الرخصة
-
-هذا البرنامج مجاني للاستخدام الشخصي والتجاري.
-
----
-
-**آخر تحديث:** 2025-11-01  
-**الإصدار:** 1.0 Fixed
+للمساهمة في الكود، راجع [CONTRIBUTING.md](CONTRIBUTING.md).

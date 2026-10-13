@@ -9,7 +9,7 @@
 ### 1️⃣ الإبلاغ عن الأخطاء (Bug Reports)
 
 إذا وجدت خطأ:
-- تأكد أنه لم يتم الإبلاغ عنه مسبقاً في [Issues](https://github.com/YOUR_USERNAME/alshinen/issues)
+- تأكد أنه لم يتم الإبلاغ عنه مسبقاً في [Issues](https://github.com/alshinen/---Arabic-voice-typing/issues)
 - افتح Issue جديد مع:
   - وصف واضح للمشكلة
   - خطوات إعادة إنتاج الخطأ
@@ -27,10 +27,10 @@
 #### الخطوات:
 
 1. **Fork** المستودع إلى حسابك
-2. **Clone** المستودع محلياً:
+2. **Clone** نسختك محلياً (استبدل `YOUR_USERNAME` باسم حسابك):
    ```bash
-   git clone https://github.com/YOUR_USERNAME/alshinen.git
-   cd alshinen
+   git clone https://github.com/YOUR_USERNAME/---Arabic-voice-typing.git arabic-voice-typing
+   cd arabic-voice-typing
    ```
 3. أنشئ **branch** جديد:
    ```bash
@@ -54,6 +54,9 @@
 ---
 
 ## 📝 إرشادات الكود
+
+- نقطة التشغيل المعتمدة هي `main_advanced.py`. استخدم فروع Git وسجل الالتزامات لحفظ الإصدارات السابقة بدلاً من إضافة نسخ أخرى من ملف التشغيل.
+- أبقِ النماذج والبيئات الافتراضية والسجلات وبيانات الاستخدام خارج Git؛ يحدد `.gitignore` الملفات المحلية المستبعدة.
 
 ### أسلوب الكتابة (Code Style)
 

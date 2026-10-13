@@ -25,52 +25,46 @@
 ### 1️⃣ التثبيت
 
 ```bash
-# تثبيت جميع المكتبات المطلوبة
-pip install -r requirements_advanced.txt
-
-# تثبيت مكتبة الترجمة (اختياري)
-pip install googletrans==4.0.0rc1
+# إنشاء بيئة محلية للمشروع
+python -m venv venv
 ```
 
-أو استخدم ملفات `.bat` على Windows:
+على Windows افتح CMD داخل مجلد المشروع:
 
-```bash
-# تثبيت المكتبات
-install_all.bat
-
-# تثبيت المكتبات المتقدمة فقط
-install_advanced.bat
-
-# تثبيت مكتبة الترجمة
-INSTALL_TRANSLATION.bat
+```bat
+call venv\Scripts\activate.bat
+rem تثبيت جميع المكتبات المطلوبة
+python -m pip install -r requirements_advanced.txt
 ```
+
+على Linux/macOS فعّل البيئة باستخدام `source venv/bin/activate`، ثم نفّذ أمر التثبيت نفسه. راجع [دليل البيئة الافتراضية](README_VENV.md) للتفاصيل.
+
+ملفات `INSTALL_*.bat` الموجودة في المستودع مخصّصة لتثبيت مكونات معينة؛ ملف `requirements_advanced.txt` هو القائمة الكاملة.
 
 ### 2️⃣ تحميل النماذج
 
-**مهم:** مجلد `models/` غير مضمّن في المستودع (حجمه 2GB+). لتحميل النموذج العربي:
+النماذج تُحمّل منفصلة عن ملفات المشروع. لتحميل نموذج Vosk العربي من البيئة التي ثبّت فيها المكتبات:
 
 ```bash
 # تحميل نموذج Vosk العربي
-python download_arabic.py
-
-# أو استخدم الملف الدفعي
-DOWNLOAD_ARABIC.bat
+python -c "from model_manager import ModelManager; ModelManager().download_model('ar')"
 ```
 
-يمكنك أيضاً تحميل النماذج من داخل الواجهة الرسومية عبر زر **"تحميل النماذج"**.
+يمكنك أيضاً تحميل النماذج من داخل الواجهة الرسومية عبر زر **"تحميل النماذج"**. يحفظها مدير النماذج افتراضياً في `~/.voice_to_text/models/`، ويمكنه اكتشاف النماذج الموضوعة داخل `models/` في المشروع.
 
 ### 3️⃣ التشغيل
 
 ```bash
-# طريقة 1: استخدام الملف الدفعي (موصى به)
-START.bat
+# طريقة 1: تشغيل البيئة الافتراضية على Windows
+START_VENV.bat
 
-# طريقة 2: تشغيل مباشر
+# طريقة 2: تشغيل مباشر بعد تفعيل البيئة
 python main_advanced.py
-
-# طريقة 3: تشغيل مع تحميل Whisper
-python download_and_run.py
 ```
+
+يمكن تشغيل `START.bat` بعد تفعيل البيئة؛ يستخدم أمر `python` المتاح ويشغّل `main_advanced.py` دون فرض تحميل Whisper.
+
+إذا أردت استخدام Whisper، ثبّت `openai-whisper` في البيئة أولاً. يحتفظ المشروع بالملف الاختياري `download_and_run.py` لتحميل نموذج Whisper وتشغيل الواجهة.
 
 ---
 
@@ -103,7 +97,7 @@ python download_and_run.py
 
 ### 🎤 الكتابة بالصوت
 
-1. **افتح البرنامج** - شغّل `START.bat` أو `python main_advanced.py`
+1. **افتح البرنامج** - شغّل `START_VENV.bat` أو فعّل البيئة ثم شغّل `python main_advanced.py`
 2. **اختر اللغة** - من القائمة المنسدلة (العربية افتراضياً)
 3. **ابدأ التسجيل** - اضغط زر "🎙️ ابدأ التسجيل"
 4. **تكلم بوضوح** - سيظهر النص مباشرة
@@ -185,7 +179,7 @@ pip install pyaudio
 
 ```bash
 # حمّل النموذج العربي
-python download_arabic.py
+python -c "from model_manager import ModelManager; ModelManager().download_model('ar')"
 
 # أو يدوياً من:
 # https://alphacephei.com/vosk/models

@@ -27,9 +27,9 @@
 
 ## سير عمل المطورين والأوامر المهمة
 
-- **تشغيل سريع (Windows)**: انقر نقراً مزدوجاً على `START.bat` أو شغّل `python main_advanced.py` من جذر المستودع.
+- **تشغيل سريع (Windows)**: أنشئ `venv/` وثبّت `requirements_advanced.txt`، ثم شغّل `START_VENV.bat`. يستخدم `START.bat` أمر `python` المتاح لتشغيل `main_advanced.py` دون فرض تحميل Whisper.
 - **فحص صحي سريع**: شغّل `python run_simple.py` — يطبع هذا توفر Whisper و Vosk و PyAudio ويحاول تشغيل التطبيق مع عرض أخطاء مفيدة.
-- **تحميل نماذج Vosk برمجياً**: استخدم `model_manager.ModelManager().download_model('ar')` أو السكريبتات `download_and_run.py`/`download_models.py` إن وُجدت.
+- **تحميل نماذج Vosk برمجياً**: استخدم `model_manager.ModelManager().download_model('ar')`. الملف `download_and_run.py` مخصص لتحميل نموذج Whisper ثم فتح الواجهة.
 - **مساعد الإصلاح الشامل**: `python fix_all.py` أو `FIX_ALL.bat` على Windows — احفظ هذه السكريبتات عند تعديل منطق البدء.
 
 ## الأعراف والأنماط الخاصة بالمشروع

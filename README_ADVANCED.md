@@ -2,6 +2,8 @@
 
 برنامج متكامل لتحويل الكلام العربي إلى نص وكتابته تلقائياً في أي تطبيق.
 
+للتثبيت من نسخة جديدة، اتبع [البدء السريع](README.md) و[إعداد البيئة الافتراضية](README_VENV.md). نقطة التشغيل المعتمدة هي `main_advanced.py`.
+
 ## ✨ المميزات
 
 - ✅ **يعمل بدون إنترنت** - يستخدم Vosk أو Whisper محلياً
@@ -21,10 +23,9 @@
 
 ### المكتبات المطلوبة:
 
-#### الأساسية (مطلوبة):
+#### المتطلبات الكاملة:
 ```bash
-pip install PyAudio
-pip install keyboard  # أو pyautogui
+python -m pip install -r requirements_advanced.txt
 ```
 
 #### محرك التعرف على الصوت (اختر واحد على الأقل):
@@ -40,28 +41,22 @@ pip install vosk
 # ثم حمّل النموذج العربي من: https://alphacephei.com/vosk/models
 ```
 
-#### الواجهة (اختياري - سيعمل بدونها):
-```bash
-pip install customtkinter
-pip install Pillow
-```
+تتضمن قائمة المتطلبات مكتبات الواجهة `customtkinter` و`Pillow`، ومكتبة `SpeechRecognition` التي يفحصها البرنامج عند بدء التشغيل.
 
 ## 🚀 التثبيت السريع
 
 ### الطريقة 1: تثبيت تلقائي (Windows)
 ```bash
-# انتقل لمجلد البرنامج
-cd code/voice_typing_advanced
-
+# افتح الطرفية داخل مجلد المشروع وفعّل البيئة الافتراضية أولاً
 # قم بتثبيت جميع المتطلبات
-pip install -r requirements_advanced.txt
+python -m pip install -r requirements_advanced.txt
 ```
 
 ### الطريقة 2: تثبيت يدوي
 
 ```bash
-# 1. تثبيت المكتبات الأساسية
-pip install PyAudio keyboard customtkinter Pillow
+# 1. تثبيت المتطلبات في البيئة الافتراضية
+python -m pip install -r requirements_advanced.txt
 
 # 2. تثبيت محرك التعرف (اختر واحد)
 # Whisper (الأفضل للدقة):
