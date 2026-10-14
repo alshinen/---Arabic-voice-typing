@@ -1,0 +1,178 @@
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #1c2430;
+  --muted: #5d6878;
+  --border: #dde2e9;
+  --primary: #1f5fa8;
+  --primary-text: #ffffff;
+  --danger: #b3261e;
+  --radius: 14px;
+  --shadow: 0 1px 3px rgb(0 0 0 / 8%);
+  font-family: 'Tajawal', 'Segoe UI', Tahoma, sans-serif;
+  font-size: 18px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.page {
+  min-height: 100vh;
+  padding: 32px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-center {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  text-align: start;
+}
+
+button.card {
+  cursor: pointer;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+button.card:hover:not(:disabled) {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+button.card:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.badge {
+  align-self: flex-start;
+  margin-top: auto;
+  font-size: 0.8rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 10px 22px;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-text);
+}
+
+.form {
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field input {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-height: 48px;
+  background: var(--surface);
+}
+
+.error {
+  color: var(--danger);
+  min-height: 1.4em;
+}
+
+.launcher {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(240px, 320px));
+  gap: 24px;
+}
+
+.launcher .card {
+  min-height: 200px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.count {
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--bg);
+}
