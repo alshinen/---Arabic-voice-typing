@@ -91,8 +91,16 @@ export class AppDatabase {
     if (!this.filePath) return;
     fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
     const tmp = `${this.filePath}.tmp`;
-    fs.writeFileSync(tmp, Buffer.from(this.db.export()));
+    fs.writeFileSync(tmp, Buffer.from(this.exportBytes()));
     fs.renameSync(tmp, this.filePath);
+  }
+
+  /** نسخة كاملة من القاعدة (للنسخ الاحتياطي). */
+  exportBytes(): Uint8Array {
+    const bytes = this.db.export();
+    // sql.js يعيد فتح القاعدة عند التصدير فتعود الإعدادات (pragmas) لقيمها الافتراضية.
+    this.db.run('PRAGMA foreign_keys = ON;');
+    return bytes;
   }
 
   close(): void {

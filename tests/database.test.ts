@@ -22,7 +22,7 @@ describe('قاعدة البيانات', () => {
     const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'exams-')), 'data.sqlite');
     const db1 = await AppDatabase.open(file);
     db1.run(
-      "INSERT INTO question (id, bank_id, type, text, default_points, max_tries, created_at, updated_at) VALUES ('q1','bank-4to3','TF','نص',0.5,1,?,?)",
+      "INSERT INTO question (id, bank_id, type, text, points, max_tries, data, created_at, updated_at) VALUES ('q1','bank-4to3','TF','نص',0.5,1,'{}',?,?)",
       [now, now],
     );
     db1.close();
@@ -41,7 +41,7 @@ describe('قاعدة البيانات', () => {
     const db = await AppDatabase.open(null);
     expect(() =>
       db.run(
-        "INSERT INTO question (id, bank_id, type, text, default_points, created_at, updated_at) VALUES ('q','bank-general','HOTSPOT','اضغط',1,?,?)",
+        "INSERT INTO question (id, bank_id, type, text, points, data, created_at, updated_at) VALUES ('q','bank-general','HOTSPOT','اضغط',1,'{}',?,?)",
         [now, now],
       ),
     ).toThrow();
@@ -50,11 +50,11 @@ describe('قاعدة البيانات', () => {
   it('لا يتكرر سؤال داخل الاختبار', async () => {
     const db = await AppDatabase.open(null);
     db.run(
-      "INSERT INTO question (id, bank_id, type, text, default_points, created_at, updated_at) VALUES ('q','bank-general','TF','نص',1,?,?)",
+      "INSERT INTO question (id, bank_id, type, text, points, data, created_at, updated_at) VALUES ('q','bank-general','TF','نص',1,'{}',?,?)",
       [now, now],
     );
     db.run(
-      "INSERT INTO exam (id, title, exam_type, question_mode, created_at, updated_at) VALUES ('e','اختبار','surprise','fixed',?,?)",
+      "INSERT INTO exam (id, title, exam_type, question_mode, settings, created_at, updated_at) VALUES ('e','اختبار','surprise','fixed','{}',?,?)",
       [now, now],
     );
     db.run("INSERT INTO exam_question (id, exam_id, question_id, sort_order, points) VALUES ('a','e','q',0,1)");

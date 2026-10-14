@@ -1,5 +1,6 @@
 /**
- * مخطط قاعدة البيانات (design.md القسم 5).
+ * مخطط قاعدة البيانات (design.md القسم 5، مع التبسيط المسجل في docs/decisions-log.md):
+ * محتوى السؤال الخاص بنوعه (البدائل، المواضع، الإجابات الصحيحة، المناطق) يُحفظ JSON في question.data.
  * كل ترحيل يُطبَّق مرة واحدة بالترتيب، ورقم الإصدار يُحفظ في جدول schema_version.
  */
 export const MIGRATIONS: readonly string[] = [
@@ -17,15 +18,17 @@ export const MIGRATIONS: readonly string[] = [
     course_number TEXT NOT NULL,
     course_name TEXT NOT NULL,
     start_date TEXT,
-    archived INTEGER NOT NULL DEFAULT 0
+    archived INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
   );
 
   CREATE TABLE lesson (
     id TEXT PRIMARY KEY,
-    course_id TEXT REFERENCES course(id),
+    course_id TEXT REFERENCES course(id) ON DELETE SET NULL,
     lesson_number INTEGER,
     title TEXT NOT NULL,
-    date TEXT
+    date TEXT,
+    created_at TEXT NOT NULL
   );
 
   CREATE TABLE trainee (
@@ -66,17 +69,13 @@ export const MIGRATIONS: readonly string[] = [
     type TEXT NOT NULL CHECK (type IN ('TF','MCQ','LIST','SKILL','HOTSPOT')),
     text TEXT NOT NULL,
     image_id TEXT REFERENCES image(id),
-    default_points REAL NOT NULL CHECK (default_points >= 0),
-    tags TEXT NOT NULL DEFAULT '[]',
+    points REAL NOT NULL CHECK (points >= 0),
     level TEXT CHECK (level IN ('beginner','intermediate','advanced')),
     max_tries INTEGER NOT NULL DEFAULT 1 CHECK (max_tries >= 1),
     late_try_scoring TEXT NOT NULL DEFAULT 'decreasing'
       CHECK (late_try_scoring IN ('decreasing','full','first_only')),
-    tf_correct INTEGER,
-    list_ordered INTEGER,
-    list_shared_options INTEGER,
-    scoring_mode TEXT CHECK (scoring_mode IN ('partial','all_or_nothing','per_item')),
     shuffle_options INTEGER NOT NULL DEFAULT 1,
+    data TEXT NOT NULL,
     tested_at TEXT,
     archived INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
@@ -84,59 +83,27 @@ export const MIGRATIONS: readonly string[] = [
     CHECK (type <> 'HOTSPOT' OR image_id IS NOT NULL)
   );
 
-  -- قوائم الخيارات: مرتبطة بسؤال، أو «قائمة جاهزة» يعاد استخدامها (question_id فارغ).
-  CREATE TABLE option_list (
+  -- «القوائم الجاهزة» لأسئلة «اذكر» والمهارات.
+  CREATE TABLE ready_list (
     id TEXT PRIMARY KEY,
-    question_id TEXT REFERENCES question(id) ON DELETE CASCADE,
-    name TEXT
-  );
-
-  CREATE TABLE option_item (
-    id TEXT PRIMARY KEY,
-    option_list_id TEXT NOT NULL REFERENCES option_list(id) ON DELETE CASCADE,
-    text TEXT NOT NULL,
-    sort_order INTEGER NOT NULL
-  );
-
-  CREATE TABLE slot (
-    id TEXT PRIMARY KEY,
-    question_id TEXT NOT NULL REFERENCES question(id) ON DELETE CASCADE,
-    sort_order INTEGER NOT NULL,
-    label TEXT,
-    option_list_id TEXT REFERENCES option_list(id),
-    item_points REAL
-  );
-
-  -- slot_id فارغ = ضمن مجموعة «دون ترتيب».
-  CREATE TABLE correct_answer (
-    id TEXT PRIMARY KEY,
-    question_id TEXT NOT NULL REFERENCES question(id) ON DELETE CASCADE,
-    slot_id TEXT REFERENCES slot(id) ON DELETE CASCADE,
-    option_id TEXT NOT NULL REFERENCES option_item(id) ON DELETE CASCADE
-  );
-
-  -- الإحداثيات نسب من 0 إلى 1 من أبعاد الصورة الأصلية.
-  CREATE TABLE hotspot (
-    id TEXT PRIMARY KEY,
-    question_id TEXT NOT NULL REFERENCES question(id) ON DELETE CASCADE,
-    shape TEXT NOT NULL CHECK (shape IN ('rect','ellipse','polygon')),
-    coords TEXT NOT NULL,
-    tolerance REAL
+    name TEXT NOT NULL,
+    items TEXT NOT NULL,
+    created_at TEXT NOT NULL
   );
 
   CREATE TABLE exam (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     exam_type TEXT NOT NULL CHECK (exam_type IN ('course','promotion','quick','surprise')),
-    course_id TEXT REFERENCES course(id),
+    course_id TEXT REFERENCES course(id) ON DELETE SET NULL,
     grade_id TEXT REFERENCES grade(id),
-    lesson_id TEXT REFERENCES lesson(id),
+    lesson_id TEXT REFERENCES lesson(id) ON DELETE SET NULL,
     question_mode TEXT NOT NULL CHECK (question_mode IN ('random_draw','fixed')),
     status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published','archived')),
     is_open INTEGER NOT NULL DEFAULT 0,
     identify_mode TEXT NOT NULL DEFAULT 'pick_list'
       CHECK (identify_mode IN ('name','number_lookup','number_and_name','pick_list')),
-    settings TEXT NOT NULL DEFAULT '{}',
+    settings TEXT NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     CHECK (exam_type <> 'promotion' OR grade_id IS NOT NULL)
@@ -156,62 +123,60 @@ export const MIGRATIONS: readonly string[] = [
     exam_id TEXT NOT NULL REFERENCES exam(id) ON DELETE CASCADE,
     question_type TEXT NOT NULL,
     points REAL NOT NULL CHECK (points >= 0),
-    count INTEGER NOT NULL CHECK (count >= 0)
+    count INTEGER NOT NULL CHECK (count >= 0),
+    sort_order INTEGER NOT NULL
   );
 
+  -- status = 'preview' لتجربة المدرب: تُحذف عند الانتهاء ولا تظهر في النتائج.
   CREATE TABLE attempt (
     id TEXT PRIMARY KEY,
     exam_id TEXT NOT NULL REFERENCES exam(id),
-    trainee_id TEXT REFERENCES trainee(id),
+    trainee_id TEXT REFERENCES trainee(id) ON DELETE SET NULL,
     entered_name TEXT,
     entered_number TEXT,
     exam_snapshot TEXT NOT NULL,
     device_name TEXT,
     seat TEXT,
     started_at TEXT NOT NULL,
+    deadline_at TEXT,
     submitted_at TEXT,
-    status TEXT NOT NULL CHECK (status IN ('in_progress','submitted','timed_out')),
+    status TEXT NOT NULL CHECK (status IN ('in_progress','submitted','timed_out','preview')),
     score REAL,
     max_score REAL,
     percent REAL,
     passed INTEGER
   );
 
+  -- الأسئلة التي سُحبت لهذا المتدرب بترتيبها، مع نسخة ثابتة كاملة من السؤال.
   CREATE TABLE attempt_question (
     id TEXT PRIMARY KEY,
     attempt_id TEXT NOT NULL REFERENCES attempt(id) ON DELETE CASCADE,
-    question_id TEXT NOT NULL REFERENCES question(id),
+    question_id TEXT NOT NULL,
     position INTEGER NOT NULL,
     points REAL NOT NULL,
+    snapshot TEXT NOT NULL,
     option_order TEXT NOT NULL DEFAULT '{}',
+    done INTEGER NOT NULL DEFAULT 0,
+    earned REAL,
     UNIQUE (attempt_id, question_id)
   );
 
+  -- كل محاولة إجابة على سؤال (try).
   CREATE TABLE attempt_answer (
     id TEXT PRIMARY KEY,
-    attempt_id TEXT NOT NULL REFERENCES attempt(id) ON DELETE CASCADE,
     attempt_question_id TEXT NOT NULL REFERENCES attempt_question(id) ON DELETE CASCADE,
     try_number INTEGER NOT NULL,
     response TEXT NOT NULL,
     is_correct INTEGER NOT NULL,
-    correct_items INTEGER,
-    total_items INTEGER,
-    answered_at TEXT NOT NULL
-  );
-
-  CREATE TABLE hotspot_click (
-    id TEXT PRIMARY KEY,
-    attempt_answer_id TEXT NOT NULL REFERENCES attempt_answer(id) ON DELETE CASCADE,
-    nx REAL NOT NULL,
-    ny REAL NOT NULL,
-    hit INTEGER NOT NULL,
-    hotspot_id TEXT,
-    clicked_at TEXT NOT NULL
+    items TEXT,
+    answered_at TEXT NOT NULL,
+    UNIQUE (attempt_question_id, try_number)
   );
 
   CREATE INDEX idx_question_bank ON question(bank_id, type);
   CREATE INDEX idx_attempt_exam ON attempt(exam_id);
   CREATE INDEX idx_attempt_trainee ON attempt(trainee_id);
+  CREATE INDEX idx_aq_attempt ON attempt_question(attempt_id);
 
   INSERT INTO grade (id, code, name_ar, from_level, to_level) VALUES
     ('grade-4to3', '4to3', 'من الدرجة الرابعة إلى الثالثة', 4, 3),

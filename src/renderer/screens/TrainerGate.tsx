@@ -1,11 +1,12 @@
 import { useCallback, useState, type FormEvent } from 'react';
 import { ar } from '../../shared/i18n/ar';
+import { api } from '../api';
 import { useApi } from '../useApi';
 import { TrainerHome } from './TrainerHome';
 
 /** بوابة منصة المدرب: إنشاء كلمة المرور أول مرة، ثم الدخول. */
 export function TrainerGate({ onExit }: { onExit: () => void }) {
-  const status = useApi(useCallback(() => window.api.auth.status(), []));
+  const status = useApi(useCallback(() => api.auth.status(), []));
 
   if (status.loading) return <main className="page-center">{ar.common.loading}</main>;
   if (status.error || !status.data) return <main className="page-center error">{status.error ?? ar.common.error}</main>;
@@ -13,7 +14,7 @@ export function TrainerGate({ onExit }: { onExit: () => void }) {
     return (
       <TrainerHome
         onLogout={async () => {
-          await window.api.auth.logout();
+          await api.auth.logout();
           onExit();
         }}
       />
@@ -39,7 +40,7 @@ function PasswordForm({ mode, onDone, onBack }: { mode: 'login' | 'setup'; onDon
       setError(ar.auth.mismatch);
       return;
     }
-    const res = mode === 'setup' ? await window.api.auth.setup(password) : await window.api.auth.login(password);
+    const res = mode === 'setup' ? await api.auth.setup(password) : await api.auth.login(password);
     if (res.ok) onDone();
     else setError(res.error);
   };
