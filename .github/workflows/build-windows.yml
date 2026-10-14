@@ -19,6 +19,12 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+      # مترجم C من Visual Studio لبناء rawmouse.exe (قارئ الفئران المنفصلة لوضع المقعدين)
+      - uses: ilammy/msvc-dev-cmd@v1
+      - run: npm run build:native
+      - name: التحقق من وجود rawmouse.exe
+        shell: pwsh
+        run: if (!(Test-Path native/bin/rawmouse.exe)) { throw 'rawmouse.exe لم يُبنَ' }
       - run: npm run dist:win
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'

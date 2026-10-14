@@ -76,7 +76,11 @@ export function ImageStage({
             onPointerDown={(e) => {
               if (e.button !== 0) return;
               dragging.current = true;
-              (e.currentTarget as Element).setPointerCapture(e.pointerId);
+              try {
+                (e.currentTarget as Element).setPointerCapture(e.pointerId);
+              } catch {
+                // أحداث وضع المقعدين مصطنعة ولا تقبل الالتقاط، ولا تحتاجه.
+              }
               emit('down', e);
             }}
             onPointerMove={(e) => dragging.current && emit('move', e)}

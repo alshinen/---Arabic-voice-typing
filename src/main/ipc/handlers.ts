@@ -9,6 +9,8 @@ import type { ExamStatus } from '../../shared/types/exam';
 import type { ExamType } from '../../shared/types/domain';
 import { bankForExam } from '../../shared/types/exam';
 import type { LanServer } from '../server/lan';
+import { isSeatSender, type SeatManager } from '../seats/seatWindow';
+import { screen } from 'electron';
 import type { AttemptService } from '../services/attempts';
 import type { AuthService } from '../services/auth';
 import type { BankService } from '../services/banks';
@@ -21,6 +23,7 @@ import type { ResultService } from '../services/results';
 import type { TraineeService } from '../services/trainees';
 import type { TransferService } from '../services/transfer';
 import { UserError } from '../services/util';
+import { ar } from '../../shared/i18n/ar';
 import { callTrainee } from './trainee';
 
 export interface Services {
@@ -36,6 +39,7 @@ export interface Services {
   results: ResultService;
   transfer: TransferService;
   lan: LanServer;
+  seats: SeatManager;
   dataDir: string;
   portable: boolean;
 }
@@ -144,6 +148,14 @@ export function registerHandlers(sv: Services): void {
         return content ? sv.transfer.importResults(content) : null;
       },
       openFolder: async () => (await shell.openPath(sv.dataDir), null),
+      seatsInfo: () => ({
+        supported: sv.seats.supported,
+        running: sv.seats.running,
+        displays: screen.getAllDisplays().length,
+        speed: sv.seats.speed,
+      }),
+      seatsOpen: () => (sv.seats.open(), null),
+      seatsSpeed: (v) => (sv.seats.setSpeed(Number(v)), null),
     },
     lan: {
       status: () => sv.lan.status(),
@@ -163,9 +175,10 @@ export function registerHandlers(sv: Services): void {
 
   for (const [group, methods] of Object.entries(trainer)) {
     for (const [method, fn] of Object.entries(methods)) {
-      ipcMain.handle(`${group}:${method}`, (_e, ...args) =>
+      ipcMain.handle(`${group}:${method}`, (e, ...args) =>
         wrap(() => {
-          if (!loggedIn) throw new UserError('يجب دخول المدرب أولًا');
+          // نافذة المقعدين للمتدربين فقط: لا تصل منها أي دالة من دوال المدرب.
+          if (!loggedIn || isSeatSender(e.sender.id)) throw new UserError('يجب دخول المدرب أولًا');
           return fn(...args);
         }),
       );
@@ -198,7 +211,11 @@ export function registerHandlers(sv: Services): void {
   }
 
   for (const method of ['exams', 'pickList', 'lookup', 'start', 'state', 'submitTry', 'acceptBest', 'finish']) {
-    ipcMain.handle(`trainee:${method}`, (_e, ...args) => callTrainee(sv.attempts, method, args, os.hostname()));
+    ipcMain.handle(`trainee:${method}`, (_e, ...args) => {
+      const seat = method === 'start' && (args[2] === 'A' || args[2] === 'B') ? args[2] : null;
+      const device = seat ? `${os.hostname()} - ${seat === 'A' ? ar.seats.seatA : ar.seats.seatB}` : os.hostname();
+      return callTrainee(sv.attempts, method, method === 'start' ? args.slice(0, 2) : args, device);
+    });
   }
 }
 

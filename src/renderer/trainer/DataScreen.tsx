@@ -9,6 +9,8 @@ export function DataScreen({ onBack }: { onBack: () => void }) {
   const { confirm, toast } = useFeedback();
   const info = useApi(useCallback(() => api.data.info(), []));
   const lan = useApi(useCallback(() => api.lan.status(), []));
+  const seats = useApi(useCallback(() => api.data.seatsInfo(), []));
+  const [speed, setSpeed] = useState<number | null>(null);
   const [port, setPort] = useState<number | null>(8080);
   const [pw, setPw] = useState({ old: '', next: '' });
 
@@ -72,6 +74,44 @@ export function DataScreen({ onBack }: { onBack: () => void }) {
             {ar.data.importResults}
           </button>
         </div>
+      </section>
+
+      <section className="card stack-sm">
+        <h2>{ar.seats.title}</h2>
+        <p className="muted">{ar.seats.hint}</p>
+        {seats.data && (
+          <>
+            <p>{ar.seats.displays(seats.data.displays)}</p>
+            {seats.data.displays < 2 && <p className="warn">{ar.seats.oneDisplay}</p>}
+            {!seats.data.supported && <p className="warn">{ar.seats.unsupported}</p>}
+            <div className="row gap center wrap">
+              <button
+                className="btn btn-primary"
+                disabled={!seats.data.supported}
+                onClick={async () => {
+                  report(await api.data.seatsOpen());
+                  void seats.reload();
+                }}
+              >
+                {ar.seats.start}
+              </button>
+              {seats.data.running && <span className="chip chip-ok">{ar.seats.running}</span>}
+              <label className="field">
+                {ar.seats.speed}
+                <NumberInput
+                  value={speed ?? seats.data.speed}
+                  step={0.25}
+                  onChange={async (v) => {
+                    setSpeed(v);
+                    if (v !== null && v >= 0.25 && v <= 4) await api.data.seatsSpeed(v);
+                  }}
+                  className="w-sm"
+                />
+              </label>
+            </div>
+            <p className="muted">{ar.seats.shortcuts}</p>
+          </>
+        )}
       </section>
 
       <section className="card stack-sm">

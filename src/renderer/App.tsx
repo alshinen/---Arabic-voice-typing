@@ -4,6 +4,7 @@ import { FeedbackProvider } from './components/ui';
 import { Launcher } from './screens/Launcher';
 import { TrainerGate } from './screens/TrainerGate';
 import { TraineeApp } from './trainee/TraineeApp';
+import { SeatsApp } from './seats/SeatsApp';
 
 type Platform = 'launcher' | 'trainer' | 'trainee';
 
@@ -12,6 +13,11 @@ type Platform = 'launcher' | 'trainer' | 'trainee';
  * ولا يمكن الوصول إلى منصة المدرب.
  */
 export function App() {
+  if (embedded && window.location.hash === '#seats') return <SeatsApp />;
+  return <Platforms />;
+}
+
+function Platforms() {
   const [platform, setPlatform] = useState<Platform>(embedded ? 'launcher' : 'trainee');
 
   const choose = (p: Platform) => {

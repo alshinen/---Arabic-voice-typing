@@ -28,8 +28,11 @@ export function SlotSelect({
 
   useEffect(() => {
     if (!open) return;
+    // في وضع المقعدين: ضغطة المتدرب الآخر لا تغلق قائمة هذا المتدرب.
+    const seatOf = (n: EventTarget | null) => (n instanceof Element ? n.closest('[data-seat]') : null);
     const close = (e: PointerEvent) => {
-      if (root.current && !root.current.contains(e.target as Node)) setOpen(false);
+      if (!root.current || root.current.contains(e.target as Node)) return;
+      if (seatOf(e.target) === seatOf(root.current)) setOpen(false);
     };
     window.addEventListener('pointerdown', close);
     return () => window.removeEventListener('pointerdown', close);

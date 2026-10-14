@@ -3,6 +3,7 @@ import type { BankKind, ExamType, QuestionType } from './domain';
 import type { ExamStatus, ExamStored, ExamSummary } from './exam';
 import type { QuestionSummary, StoredQuestion } from './question';
 import type { TryGrade } from '../scoring/grade';
+import type { MouseDevice, MouseEventMsg, SeatBinding, SeatId, SeatLayout } from '../seats';
 
 export interface BankSummary {
   id: string;
@@ -82,6 +83,24 @@ export interface LanStatus {
   port: number;
   urls: string[];
 }
+export interface SeatsInfo {
+  supported: boolean;
+  running: boolean;
+  displays: number;
+  speed: number;
+}
+
+/** قنوات نافذة المقعدين (لا تُستخدم إلا فيها). */
+export interface SeatsApi {
+  layout(): Promise<SeatLayout & { speed: number }>;
+  devices(): Promise<MouseDevice[]>;
+  binding(): Promise<SeatBinding>;
+  saveBinding(b: SeatBinding): Promise<null>;
+  onMouse(cb: (e: MouseEventMsg) => void): void;
+  onDevices(cb: (d: MouseDevice[]) => void): void;
+  onRebind(cb: () => void): void;
+}
+
 export interface DataInfo {
   version: string;
   dataDir: string;
@@ -93,7 +112,7 @@ export interface TraineeApi {
   exams(): R<AvailableExam[]>;
   pickList(examId: string): R<{ id: string; name: string }[]>;
   lookup(number: string): R<{ traineeId: string; name: string }>;
-  start(examId: string, identity: IdentityInput): R<AttemptState>;
+  start(examId: string, identity: IdentityInput, seat?: SeatId): R<AttemptState>;
   state(attemptId: string): R<AttemptState>;
   submitTry(attemptId: string, aqId: string, response: unknown): R<TryResult>;
   acceptBest(attemptId: string, aqId: string): R<PublicQuestion>;
@@ -169,6 +188,9 @@ export interface TrainerApi {
     exportResults(): R<string | null>;
     importResults(): R<{ added: number; duplicates: number; skipped: number } | null>;
     openFolder(): R<null>;
+    seatsInfo(): R<SeatsInfo>;
+    seatsOpen(): R<null>;
+    seatsSpeed(v: number): R<null>;
   };
   lan: {
     status(): R<LanStatus>;
@@ -176,4 +198,5 @@ export interface TrainerApi {
     stop(): R<LanStatus>;
   };
   trainee: TraineeApi;
+  seats: SeatsApi;
 }

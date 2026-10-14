@@ -4,3 +4,4 @@ release/
 coverage/
 *.log
 .DS_Store
+native/bin/

@@ -1138,3 +1138,83 @@ button.card:hover:not(:disabled) {
 .field .warn {
   font-weight: 400;
 }
+
+/* وضع المقعدين */
+.seats-root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  cursor: none !important;
+}
+.seats-root * {
+  cursor: none !important;
+}
+.seat {
+  position: absolute;
+  overflow: auto;
+  /* يجعل النوافذ المنبثقة والرسائل (position: fixed) محصورة داخل المقعد */
+  transform: translateZ(0);
+  background: var(--bg);
+}
+.seat-A {
+  border-inline-end: 4px solid #1f5fa8;
+}
+.seat-B {
+  border-inline-start: 4px solid #1e7a46;
+}
+.seat-label {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  text-align: center;
+  font-weight: 700;
+  padding: 4px;
+  color: #fff;
+}
+.seat-A .seat-label {
+  background: #1f5fa8;
+}
+.seat-B .seat-label {
+  background: #1e7a46;
+}
+.seat .page,
+.seat .page-center,
+.seat .runner {
+  min-height: calc(100% - 32px);
+}
+.seat .modal-backdrop {
+  position: fixed;
+}
+.bind-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgb(244 246 249 / 96%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 24px;
+}
+.seat-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+.seat-cursor svg {
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 60%));
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+.seat-cursor-A svg {
+  fill: #1f5fa8;
+}
+.seat-cursor-B svg {
+  fill: #1e7a46;
+}

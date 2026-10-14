@@ -11,4 +11,14 @@ for (const [group, methods] of Object.entries(IPC_METHODS)) {
 }
 api.trainee!.imageUrl = (id: string) => `${IMAGE_SCHEME}://image/${encodeURIComponent(id)}`;
 
+api.seats = {
+  layout: () => ipcRenderer.invoke('seats:layout'),
+  devices: () => ipcRenderer.invoke('seats:devices'),
+  binding: () => ipcRenderer.invoke('seats:binding'),
+  saveBinding: (b: unknown) => ipcRenderer.invoke('seats:saveBinding', b),
+  onMouse: (cb: (e: unknown) => void) => ipcRenderer.on('seats:mouse', (_e, m) => cb(m)),
+  onDevices: (cb: (d: unknown) => void) => ipcRenderer.on('seats:devices', (_e, d) => cb(d)),
+  onRebind: (cb: () => void) => ipcRenderer.on('seats:rebind', () => cb()),
+};
+
 contextBridge.exposeInMainWorld('api', api);

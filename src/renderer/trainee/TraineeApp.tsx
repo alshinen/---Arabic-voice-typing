@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ar } from '../../shared/i18n/ar';
 import type { AttemptOutcome, AttemptState, AvailableExam, IdentityInput } from '../../shared/types/attempt';
 import type { ExamType } from '../../shared/types/domain';
+import type { SeatId } from '../../shared/seats';
 import { traineeApi } from '../api';
 import { NumberPad } from '../components/NumberPad';
 import { ErrorText, Loading } from '../components/ui';
@@ -18,7 +19,7 @@ type Step =
 const TYPES: ExamType[] = ['course', 'promotion', 'quick', 'surprise'];
 
 /** منصة المتدرب: صفحة الاختبارات، ثم التعريف، ثم التعليمات، ثم الاختبار، ثم النتيجة. */
-export function TraineeApp({ onExit }: { onExit?: () => void }) {
+export function TraineeApp({ onExit, seat }: { onExit?: () => void; seat?: SeatId }) {
   const [step, setStep] = useState<Step>({ name: 'home' });
   const home = () => setStep({ name: 'home' });
 
@@ -29,6 +30,7 @@ export function TraineeApp({ onExit }: { onExit?: () => void }) {
       return (
         <Identify
           exam={step.exam}
+          seat={seat}
           onBack={home}
           onDone={(identity, who) => setStep({ name: 'instructions', exam: step.exam, identity, who })}
         />
@@ -37,6 +39,7 @@ export function TraineeApp({ onExit }: { onExit?: () => void }) {
       return (
         <Instructions
           exam={step.exam}
+          seat={seat}
           who={step.who}
           identity={step.identity}
           onBack={home}
@@ -114,10 +117,12 @@ function ExamsHome({ onChoose, onExit }: { onChoose: (e: AvailableExam) => void;
 
 function Identify({
   exam,
+  seat,
   onBack,
   onDone,
 }: {
   exam: AvailableExam;
+  seat?: SeatId;
   onBack: () => void;
   onDone: (identity: IdentityInput, who: string | null) => void;
 }) {
@@ -212,7 +217,10 @@ function Identify({
             </div>
           ))}
 
-        {(exam.identifyMode === 'number_and_name' || exam.identifyMode === 'name') && (
+        {seat && (exam.identifyMode === 'number_and_name' || exam.identifyMode === 'name') && (
+          <p className="warn">{ar.seats.modeNotInSeats}</p>
+        )}
+        {!seat && (exam.identifyMode === 'number_and_name' || exam.identifyMode === 'name') && (
           <div className="center-col">
             {exam.identifyMode === 'number_and_name' && (
               <>
@@ -241,12 +249,14 @@ function Identify({
 
 function Instructions({
   exam,
+  seat,
   who,
   identity,
   onBack,
   onStarted,
 }: {
   exam: AvailableExam;
+  seat?: SeatId;
   who: string | null;
   identity: IdentityInput;
   onBack: () => void;
@@ -256,7 +266,7 @@ function Instructions({
   const [busy, setBusy] = useState(false);
   const start = async () => {
     setBusy(true);
-    const r = await traineeApi.start(exam.id, identity);
+    const r = await traineeApi.start(exam.id, identity, seat);
     setBusy(false);
     if (r.ok) onStarted(r.data);
     else setError(r.error);

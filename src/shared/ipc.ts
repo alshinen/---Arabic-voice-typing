@@ -12,7 +12,7 @@ export const IPC_METHODS = {
   trainees: ['list', 'save', 'remove', 'importCsv'],
   exams: ['list', 'get', 'save', 'setStatus', 'setOpen', 'remove', 'problems', 'availability', 'bankQuestions', 'previewStart', 'previewDiscard'],
   results: ['list', 'detail', 'exportCsv', 'grantExtra'],
-  data: ['info', 'backup', 'restore', 'exportResults', 'importResults', 'openFolder'],
+  data: ['info', 'backup', 'restore', 'exportResults', 'importResults', 'openFolder', 'seatsInfo', 'seatsOpen', 'seatsSpeed'],
   lan: ['status', 'start', 'stop'],
   trainee: ['exams', 'pickList', 'lookup', 'start', 'state', 'submitTry', 'acceptBest', 'finish'],
 } as const;

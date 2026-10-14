@@ -7,6 +7,7 @@ import { IMAGE_SCHEME } from '../shared/ipc';
 import { AppDatabase } from './db/database';
 import { registerHandlers } from './ipc/handlers';
 import { LanServer } from './server/lan';
+import { SeatManager } from './seats/seatWindow';
 import { AttemptService } from './services/attempts';
 import { AuthService } from './services/auth';
 import { BankService } from './services/banks';
@@ -110,6 +111,7 @@ async function bootstrap(): Promise<void> {
     });
 
     const lan = new LanServer(rendererDir, attempts, images);
+    const seats = new SeatManager(db, path.join(__dirname, '..', 'preload', 'preload.js'), path.join(rendererDir, 'index.html'));
     registerHandlers({
       auth: new AuthService(db),
       banks: new BankService(db),
@@ -123,10 +125,14 @@ async function bootstrap(): Promise<void> {
       results: new ResultService(db),
       transfer: new TransferService(db, dbFile, imagesDir),
       lan,
+      seats,
       dataDir,
       portable,
     });
-    app.on('before-quit', () => void lan.stop());
+    app.on('before-quit', () => {
+      void lan.stop();
+      seats.close();
+    });
   } catch (err) {
     dialog.showErrorBox('تعذّر فتح بيانات البرنامج', err instanceof Error ? err.message : String(err));
     app.quit();
